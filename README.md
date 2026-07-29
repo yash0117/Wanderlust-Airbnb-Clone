@@ -87,7 +87,9 @@ airbnbproj
 ### Clone Repository
 
 ```bash
-git clone https://github.com/yash0117/airbnbya.git
+
+git clone https://github.com/yash0117/Wanderlust-Airbnb-Clone.git
+
 ```
 
 ### Go to Project Directory
@@ -127,9 +129,9 @@ npm start
 
 ## 📸 Screenshots
 
-[AIRBNB-clone Screenshoot](./Screenshot%202026-07-30%20015421.png)
+### Home Page
 
----
+<img src="./Screenshot 2026-07-30 015421.png" width="800"/>
 
 ## 🔮 Future Improvements
 
