@@ -15,15 +15,16 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
-const User = require("./models/user.js");
+const User = require("./models/user");
+const Listing = require("./models/listing");
 
-const listingRouter = require("./routes/listing.js");
-const reviewRouter = require("./routes/review.js");
-const userRouter = require("./routes/user.js");
+const listingRouter = require("./routes/listing");
+const reviewRouter = require("./routes/review");
+const userRouter = require("./routes/user");
 
-const ExpressError = require("./utils/ExpressError.js");
+const ExpressError = require("./utils/ExpressError");
 
-// =================== MongoDB Connection ===================
+// ===================== MongoDB =====================
 
 const dbUrl = process.env.ATLASDB_URL;
 
@@ -39,25 +40,37 @@ main()
         console.log(err);
     });
 
-// =================== View Engine ===================
+// Check Listings (Debug)
+mongoose.connection.once("open", async () => {
+    try {
+        const listings = await Listing.find({});
+        console.log("=================================");
+        console.log("Total Listings:", listings.length);
+        console.log(listings);
+        console.log("=================================");
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// ===================== View Engine =====================
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-
 app.engine("ejs", ejsMate);
 
-// =================== Middlewares ===================
+// ===================== Middlewares =====================
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
-// =================== Session ===================
+// ===================== Session =====================
 
 const sessionOptions = {
-    secret: process.env.SECRET,
+    secret: process.env.SECRET || "mysupersecretcode",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -68,7 +81,7 @@ const sessionOptions = {
 app.use(session(sessionOptions));
 app.use(flash());
 
-// =================== Passport ===================
+// ===================== Passport =====================
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -78,7 +91,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-// =================== Global Variables ===================
+// ===================== Flash =====================
 
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
@@ -87,33 +100,33 @@ app.use((req, res, next) => {
     next();
 });
 
-// =================== Routes ===================
+// ===================== Routes =====================
 
 app.get("/", (req, res) => {
     res.redirect("/listings");
 });
 
 app.use("/listings", listingRouter);
-
 app.use("/listings/:id/reviews", reviewRouter);
-
 app.use("/", userRouter);
 
-// =================== 404 Handler ===================
+// ===================== 404 =====================
 
 app.use((req, res, next) => {
     next(new ExpressError(404, "Page Not Found"));
 });
 
-// =================== Error Handler ===================
+// ===================== Error =====================
 
 app.use((err, req, res, next) => {
     let { statusCode = 500, message = "Something went wrong!" } = err;
 
-    res.status(statusCode).render("error.ejs", { message });
+    res.status(statusCode).render("error.ejs", {
+        message,
+    });
 });
 
-// =================== Server ===================
+// ===================== Server =====================
 
 const PORT = process.env.PORT || 8080;
 
