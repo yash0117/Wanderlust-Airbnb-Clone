@@ -1,30 +1,30 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
+
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wandertest";
-
-main()
-    .then(() => {
-        console.log("connected to DB");
-    })
-    .catch((err) => {
-        console.log(err);
-    });
-
+const MONGO_URL = process.env.ATLASDB_URL;
 
 async function main() {
     await mongoose.connect(MONGO_URL);
+    console.log("Connected to MongoDB Atlas");
 }
+
+main()
+    .then(() => initDB())
+    .catch((err) => console.log(err));
 
 const initDB = async () => {
     await Listing.deleteMany({});
-    initData.data =  initData.data.map((obj) => ({ 
-        ...obj,
-         owner: "690b9316f3d089df994714e0",
-     }));
-    await Listing.insertMany(initData.data);
-    console.log("data was initialized");
-};
 
-initDB();
+    const data = initData.data.map((obj) => ({
+        ...obj,
+        owner: "690b9316f3d089df994714e0", // Existing User ID
+    }));
+
+    await Listing.insertMany(data);
+
+    console.log("✅ Data initialized successfully!");
+    process.exit();
+};
